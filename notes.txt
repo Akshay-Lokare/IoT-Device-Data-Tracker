@@ -1,0 +1,64 @@
+                      ┌──────────────────────────┐
+                      │      Home Page (/)       │
+                      │  - Overview of Sensors   │
+                      │  - Live Data & Graphs    │
+                      └──────────┬──────────────┘
+                                 │
+       ┌─────────────────────────┴──────────────────────────┐
+       │                                                   │
+┌──────────────┐                                   ┌───────────────────┐
+│ Sensor Page  │                                   │ Events Page       │
+│ (/sensors)   │                                   │ (/events)         │
+│ - List of Sensors │                               │ - Button Press Sim │
+│ - Individual Stats│                               │ - Motion Detection │
+│ - Status (Active/Inact.) │                        │ - Event Logs       │
+└──────────────┘                                   └───────────────────┘
+       │                                                   │
+       │ (Click Sensor)                                    │
+       │                                                   │
+┌──────────────┐                                   ┌───────────────────┐
+│ Sensor Details│                                  │ Live Dashboard     │
+│ (/sensor/:id) │                                  │ (/dashboard)       │
+│ - Graphs (Realtime) │                            │ - WebSocket Updates│
+│ - Historical Data │                              │ - Critical Alerts  │
+│ - Alerts & Logs  │                               │ - User Preferences │
+└──────────────┘                                   └───────────────────┘
+       │                                                   
+       │ (Data API Calls)                                    
+       ▼                                                   
+┌──────────────────────────┐                     
+│      Backend/API         │                     
+│ - WebSockets (Live Data) │                     
+│ - REST API (Sensor Data) │                     
+│ - Database (MongoDB)     │                     
+└──────────────────────────┘                     
+
+
+
+Pages & Features Breakdown:
+Home Page (/)
+
+Overview of all IoT sensors
+Live graphs of aggregated data
+Sensors Page (/sensors)
+
+List of all sensors (Motion, Feedback, etc.)
+Status indicators (Active/Inactive)
+Sensor Details Page (/sensor/:id)
+
+Individual sensor stats
+Live + historical graphs
+Alerts if threshold exceeded
+Events Page (/events)
+
+Button press event handling
+Motion detection logs
+Live Dashboard (/dashboard)
+
+Real-time updates via WebSockets
+Customizable alerts & notifications
+Backend/API Layer
+
+WebSockets for real-time data
+REST API for fetching sensor info
+MongoDB (optional) for historical data

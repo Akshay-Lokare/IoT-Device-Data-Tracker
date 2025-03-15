@@ -1,0 +1,50 @@
+{
+    "tracks": [
+      {
+        "id": "1",
+        "title": "Shape of You",
+        "artist": "Ed Sheeran",
+        "album": "÷ (Divide)",
+        "duration": 233,
+        "cover": "/covers/shape_of_you.jpg",
+        "src": "/songs/shape_of_you.mp3"
+      },
+      {
+        "id": "2",
+        "title": "Blinding Lights",
+        "artist": "The Weeknd",
+        "album": "After Hours",
+        "duration": 200,
+        "cover": "/covers/blinding_lights.jpg",
+        "src": "/songs/blinding_lights.mp3"
+      },
+      {
+        "id": "3",
+        "title": "Levitating",
+        "artist": "Dua Lipa",
+        "album": "Future Nostalgia",
+        "duration": 203,
+        "cover": "/covers/levitating.jpg",
+        "src": "/songs/levitating.mp3"
+      },
+      {
+        "id": "4",
+        "title": "Stay",
+        "artist": "The Kid LAROI & Justin Bieber",
+        "album": "Stay (Single)",
+        "duration": 141,
+        "cover": "/covers/stay.jpg",
+        "src": "/songs/stay.mp3"
+      },
+      {
+        "id": "5",
+        "title": "Industry Baby",
+        "artist": "Lil Nas X & Jack Harlow",
+        "album": "MONTERO",
+        "duration": 212,
+        "cover": "/covers/industry_baby.jpg",
+        "src": "/songs/industry_baby.mp3"
+      }
+    ]
+  }
+  
