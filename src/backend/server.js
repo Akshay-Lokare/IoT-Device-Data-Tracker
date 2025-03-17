@@ -14,37 +14,38 @@ app.use(cors());
 
 connectDB();
 
-app.get("/backend-test", (req, res) => {
-    console.log("✅ /backend-test route hit!");
-    res.send("API is running...");
-});
-
-// ✅ Fix: Log incoming GET request for debugging
 app.get("/api/events/:device_id", async (req, res) => {
     const { device_id } = req.params;
+
     console.log(`➡️ GET request received for device_id: ${device_id}`);
 
     try {
-        const event = await feedbackEvent.findOne({ deviceId: device_id });
+        const event = await feedbackEvent.find({ deviceId: device_id });
+
         if (!event) {
-            console.log("❌ No event found for device_id:", device_id);
-            return res.status(404).json({ message: "Event not found" });
+            console.log(" No event found for device_id:", device_id);
+            return res.status(200).json({}); 
         }
-        console.log("✅ Event found:", event);
+
+        console.log(" Returning event data:", JSON.stringify(event, null, 2));
+
+        console.log(" Event found:", event);
+
         res.json(event);
+
     } catch (error) {
-        console.error("❌ Error retrieving event:", error);
+        console.error(" Error retrieving event:", error);
         res.status(500).json({ error: "Failed to retrieve event" });
     }
 });
 
 app.post("/api/events", async (req, res) => {
     try {
-        console.log("➡️ POST request received with body:", req.body);
+        console.log(" POST request received with body:", req.body);
         const { deviceId, timestamp, locationTags, device } = req.body;
 
         // 🆕 Always create a new feedback event
-        console.log(`🆕 Creating new event for deviceId: ${deviceId}`);
+        console.log(` Creating new event for deviceId: ${deviceId}`);
         const newEvent = new feedbackEvent({
             deviceId, 
             timestamp, 
@@ -53,14 +54,15 @@ app.post("/api/events", async (req, res) => {
         });
 
         await newEvent.save();
-        console.log("✅ New event created successfully:", newEvent);
+        console.log(" New event created successfully:", newEvent);
         res.status(201).json({ message: "Feedback event created successfully", newEvent });
 
     } catch (error) {
-        console.error("❌ Error processing event:", error);
+        console.error(" Error processing event:", error);
         res.status(500).json({ error: "Failed to process event" });
     }
 });
+
 
 
 app.listen(PORT, () => {

@@ -69,9 +69,119 @@ html, body {
   padding-bottom: 40px;
 }
 
+.graph-container {
+  width: 80%;  
+  max-width: 1200px;  /* Allows wider graphs */
+  height: 450px;  /* Slightly taller for better visibility */
+  margin: 20px auto;  
+  padding: 20px;
+  
+  background: #ffffff; 
+  border-radius: 10px;  
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); 
+  
+  position: relative;  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .graph-container {
+    width: 95%;
+    height: 350px;
+    padding: 15px;
+  }
+}
+
+/* Container for Buttons (Aligns Dropdown & Refetch Button) */
+.button-container {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  display: flex;
+  gap: 10px; /* Adds spacing between buttons */
+}
+
+/* Refetch Button */
+.refetch-btn {
+  background: var(--background-color);
+  color: var(--accent-color);
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+.refetch-btn:hover {
+  background: #005ecb;
+}
+
+.dropdown-btn-line {
+  width: 60px;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  
+  background: #ffffff;
+  color: #333;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  
+  transition: all 0.3s ease;
+}
+
+.dropdown-btn-line:hover {
+  background: #f4f4f4;
+}
+
+.dropdown-btn-line:focus {
+  border-color: #005ecb;
+  box-shadow: 0px 0px 8px rgba(0, 94, 203, 0.3);
+}
+
+
+.error, .loading-text, .no-data {
+  color: #333; 
+  font-size: 14px;
+}
+
+
 .error {
-  color: red;
+  color: #cc4444;
+  font-weight: 500; 
+  font-size: 14px;
+  opacity: 0.8; 
+  margin-top: 10px; 
+  text-align: center;
+  display: block;
+}
+
+.chart-wrapper {
+  margin-top: 30px;
+  padding: 20px;
+  background: var(--secondary-color);
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px var(--shadow-color);
+}
+
+.timestamp {
+  font-size: 18px;
   font-weight: bold;
+  color: var(--primary-color);
+  margin-top: 10px;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-style: italic;
+  color: #666;
 }
 
 
@@ -135,11 +245,45 @@ html, body {
   padding: 80px; /* You might want to remove or adjust this */
 }
 
-
 .device-button:hover {
   background: #666;
 }
 
 .device-button:active {
   transform: scale(0.95);
+}
+.deviceId-dropdown-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-right: 15px;
+}
+
+.deviceId-dropdown {
+  font-family: var(--font-family);
+  font-size: 16px;
+  padding: 10px 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  appearance: none;
+  outline: none;
+  box-shadow: 0px 4px 10px var(--shadow-color);
+}
+
+.deviceId-dropdown:hover {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+
+.deviceId-dropdown:focus {
+  border-color: var(--primary-color);
+}
+
+p.deviceId-dropdown-text, select.deviceId-dropdown {
+  display: inline-block;
+  vertical-align: middle;
 }

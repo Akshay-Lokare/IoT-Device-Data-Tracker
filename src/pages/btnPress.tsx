@@ -27,6 +27,7 @@ const BtnPress: React.FC = () => {
     return (
         <div>            
             {/* Dropdown to select device ID */}
+            <p className="deviceId-dropdown-text">Device ID (^_^)☞</p>
             <select 
                 className="deviceId-dropdown"
                 value={selectedDeviceId}
@@ -39,7 +40,7 @@ const BtnPress: React.FC = () => {
                 ))}
             </select>
 
-            <p>Selected Device ID: {selectedDeviceId}</p>
+            
 
             <div className="device">
                 <div className="device-screen">{Msg}</div>
