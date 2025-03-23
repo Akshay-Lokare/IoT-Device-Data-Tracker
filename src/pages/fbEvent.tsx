@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { createFeedbackEvent } from "../helpers/btnPress";
+import { createFeedbackEvent } from "../helpers/fbBtnPress";
 import deviceData from "../data/deviceData";
+
+const { fbDeviceData } = deviceData; // Extract fbDeviceData properly
 
 const BtnPress: React.FC = () => {
     const [Msg, setMsg] = useState("Welcome");
     
-    // Store the selected device ID instead of using the button label
-    const [selectedDeviceId, setSelectedDeviceId] = useState(deviceData[0]?.deviceId || "");
+    // Store the selected device ID from fbDeviceData
+    const [selectedDeviceId, setSelectedDeviceId] = useState(fbDeviceData[0]?.deviceId || "");
 
     async function handleButtonClick(label: string) {
         if (!selectedDeviceId) {
@@ -26,26 +28,27 @@ const BtnPress: React.FC = () => {
 
     return (
         <div>            
-            {/* Dropdown to select device ID */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                <a href="/" style={{ color: 'pink', fontSize: '32px' }}>Home</a>
+            </div>
+
             <p className="deviceId-dropdown-text">Device ID (^_^)☞</p>
             <select 
                 className="deviceId-dropdown"
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
             >
-                {deviceData.map((device) => (
+                {fbDeviceData.map((device) => (
                     <option key={device.deviceId} value={device.deviceId}>
                         {device.deviceId}
                     </option>
                 ))}
             </select>
 
-            
-
             <div className="device">
                 <div className="device-screen">{Msg}</div>
                 <div className="device-buttons">
-                    {["Worst", "Bad", "Good", "Excellet"].map((label) => (
+                    {["Worst", "Bad", "Good", "Excellent"].map((label) => (
                         <button 
                             className="device-button" 
                             onClick={() => handleButtonClick(label)}

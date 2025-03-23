@@ -1,21 +1,41 @@
-interface DeviceData {
+export interface IFbDeviceData {
     locationTags: [string, string, string]; 
     deviceId: string | number;
 }
 
-const deviceData: DeviceData[] = [
+export interface IMotionDeviceData { 
+    locationTags: [string, string, string];
+    deviceId: string | number;
+}
+
+const fbDeviceData: IFbDeviceData[] = [
     {
-        locationTags: ["Warehouse", "Sector 3", "Building 7"],
-        deviceId: "A",
+        locationTags: ["Pineapple", "124 Conch Street", "Bikini Bottom"],
+        deviceId: "SPONGEBOB-F",
     },
     {
-        locationTags: ["Office", "Floor 5", "North Wing"],
-        deviceId: "B",
+        locationTags: ["Easter Island Head", "122 Conch Street", "Bikini Bottom"],
+        deviceId: "SQUIDWARD-F",
     },
     {
-        locationTags: ["Factory", "Unit 12", "Assembly Line"],
-        deviceId: "C",
+        locationTags: ["Rock", "120 Conch Street", "Bikini Bottom"],
+        deviceId: "PATRICK-F",
     }
 ];
 
-export default deviceData;
+const motionDeviceData: IMotionDeviceData[] = [
+    {
+        locationTags: ["Krusty Krab", "Bikini Bottom", "Pacific Ocean"],
+        deviceId: "MRKRABS-M",
+    },
+    {
+        locationTags: ["Chum Bucket", "Bikini Bottom", "Pacific Ocean"],
+        deviceId: "PLANKTON-M",
+    },
+    {
+        locationTags: ["Mrs. Puff's", "Boating School", "Bikini Bottom"],
+        deviceId: "MRSPUFF-M",
+    }
+];
+
+export default { fbDeviceData, motionDeviceData };

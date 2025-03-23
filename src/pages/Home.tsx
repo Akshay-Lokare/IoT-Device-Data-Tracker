@@ -1,6 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import LineChart from "../components/lineChart";
+
+import FbLineChart from "../components/FbLineChart";
+import MotionLineChart from "../components/motionLineChart";
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
@@ -11,13 +13,14 @@ const Home: React.FC = () => {
             <h1 className="home-h1">Welcome to IoT Data Manager</h1>
 
             <div className="nav-btn-row">
-                <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Feedback</button>
-                <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Playlists</button>
+                <button className="nav-btn" onClick={() => navigate("/create-fb-event")}>Feedback</button>
+                <button className="nav-btn" onClick={() => navigate("/create-motion-event")}>Motion</button>
                 <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Playlists</button>
                 <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Playlists</button>
             </div>
 
-            <LineChart />
+            <FbLineChart />
+            <MotionLineChart />
         </div>
     );
 };

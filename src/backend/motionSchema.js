@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const feedbackSchema = new mongoose.Schema({
+const motionSchema = new mongoose.Schema({
     deviceId: {
         type: String,
         required: true,
@@ -13,34 +13,34 @@ const feedbackSchema = new mongoose.Schema({
         type: [String],
         validate: {
             validator: function (arr) {
-                return arr.length === 3; // Ensures exactly 3 location tags
+                return arr.length === 3;
             },
             message: "Must have exactly 3 location tags",
         },
         required: true,
     },
     device: {
-        buttonPresses: {
+        motionEvents: {
             type: Number,
-            default: 0, // Starts at 0, increments when a button is pressed
+            default: 0,
         },
-        button: {
-            buttonId: {
+        events: {
+            eventsId: {
                 type: String,
-                enum: ["Worst", "Bad", "Good", "Excellent"],
+                enum: ["Motion Triggered", "No Motion"],
                 required: true
             },
             payload: {
-                type: Number, // Now a number (1, 2, 3, or 4)
+                type: Number,
                 required: true,
             },
         }
     },
     updateDate: {
         type: Date,
-        default: Date.now, // Stores the last time data was updated
+        default: Date.now,
     },
 });
 
-const feedbackEvent = mongoose.model("feedbackEvent", feedbackSchema);
-export default feedbackEvent;
+const motionEvent = mongoose.model("motionEvent", motionSchema);
+export default motionEvent;
