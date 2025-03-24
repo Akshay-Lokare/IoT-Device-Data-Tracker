@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Line } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -17,29 +17,34 @@ import axios from "axios";
 import deviceData from "../data/deviceData"; // Import device data
 const { motionDeviceData } = deviceData;
 
+// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
 const MotionLineChart = () => {
-    const [eventData, setEventData] = useState<{ timestamp: string; value: number }[]>([]);
+    const [eventData, setEventData] = useState<{ timestamp: string; value: number; eventsId: string }[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // ✅ Ensure `selectedDeviceId` is set correctly
+    // ✅ Set initial selectedDeviceId safely
     const [selectedDeviceId, setSelectedDeviceId] = useState(
         motionDeviceData.length > 0 ? String(motionDeviceData[0]?.deviceId) : ""
     );
-    
-    // ✅ Use `useRef` for tracking previous ID without re-renders
+
+    // ✅ Use `useRef` to track previous ID without triggering re-renders
     const previousDeviceId = useRef(selectedDeviceId);
 
-    const fetchData = async () => {
-        console.log("Fetching data...");
+    // ✅ Fetch motion event data
+    const fetchData = useCallback(async () => {
+        if (!selectedDeviceId) return; // Prevent unnecessary API call
+        console.log(`Fetching data for Device ID: ${selectedDeviceId}`);
+
         setLoading(true);
         setError(null);
 
         try {
-            console.log(`Requesting data from: http://localhost:5000/api/motion/events/${selectedDeviceId}`);
-            const response = await axios.get(`http://localhost:5000/api/motion/events/${selectedDeviceId}`);
+            const url = `http://localhost:5000/api/motion/events/${selectedDeviceId}`;
+            console.log("Requesting data from:", url);
+            const response = await axios.get(url);
 
             console.log("HTTP Status:", response.status);
             console.log("Data received:", response.data);
@@ -48,10 +53,14 @@ const MotionLineChart = () => {
                 console.log("Received an array of events.");
 
                 const extractedData = response.data
-                    .map(event => ({
-                        timestamp: event.timestamp,
-                        value: event.device?.events?.payload ?? 0, // ✅ Ensure fallback for missing data
-                    }))
+                    .map(event => {
+                        const eventsId = event.device?.events?.eventsId || "Unknown"; // Ensure valid eventsId
+                        return {
+                            timestamp: event.timestamp,
+                            value: event.device?.events?.payload ?? 0, // Default to 0 if undefined
+                            eventsId,
+                        };
+                    })
                     .filter(item => item.timestamp && item.value !== undefined);
 
                 console.log("Extracted Data:", extractedData);
@@ -64,15 +73,15 @@ const MotionLineChart = () => {
             console.error("Error fetching event data:", err);
             setError(err.response ? `Server error: ${err.response.status} - ${err.response.data}` : "Failed to fetch event data.");
         } finally {
-            console.log("Data fetch completed.");
             setLoading(false);
+            console.log("Data fetch completed.");
         }
-    };
+    }, [selectedDeviceId]); // ✅ Only recreate when `selectedDeviceId` changes
 
-    // ✅ Fetch Data on Mount
+    // ✅ Fetch Data on Component Mount
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     // ✅ Fetch Data when `selectedDeviceId` changes
     useEffect(() => {
@@ -80,17 +89,29 @@ const MotionLineChart = () => {
             fetchData();
             previousDeviceId.current = selectedDeviceId; // ✅ Update ref instead of state
         }
-    }, [selectedDeviceId]);
+    }, [selectedDeviceId, fetchData]);
+
+    // ✅ Map event IDs to colors
+    const deviceColorMap: { [key: string]: string } = {
+        "Motion Triggered": "#32CD32",
+        "No Motion": "#FF0000",
+    };
 
     const data = {
         labels: eventData.map((item) => item.timestamp),
         datasets: [
             {
                 label: "Sensor Readings",
-                data: eventData.map((item) => item.value),
-                borderColor: "#f5407f",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                data: eventData.map((item) => ({
+                    x: item.timestamp,
+                    y: item.value,
+                    eventsId: item.eventsId, // Attach eventsId to each data point
+                })),
+                borderColor: eventData.map((item) => deviceColorMap[item.eventsId] || "#000000"),
+                backgroundColor: eventData.map((item) => deviceColorMap[item.eventsId] || "rgba(0, 0, 0, 0.2)"),
                 tension: 0.4,
+                pointRadius: 5, // Make points visible
+                pointBackgroundColor: eventData.map((item) => deviceColorMap[item.eventsId] || "#000000"),
             },
         ],
     };
@@ -98,11 +119,23 @@ const MotionLineChart = () => {
     const options = {
         responsive: true,
         maintainAspectRatio: false,
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem) {
+                        const dataIndex = tooltipItem.dataIndex;
+                        const pointData = tooltipItem.dataset.data[dataIndex];
+                        const eventsId = pointData.eventsId || "Unknown"; // Retrieve eventsId
+                        return `🫧 ${eventsId}: ${tooltipItem.raw.y}`;
+                    },
+                },
+            },
+        },
         scales: {
             x: {
-                type: "time" as const,
+                type: "time",
                 time: {
-                    unit: "minute" as const,
+                    unit: "minute",
                     tooltipFormat: "HH:mm",
                     displayFormats: { minute: "HH:mm" },
                 },

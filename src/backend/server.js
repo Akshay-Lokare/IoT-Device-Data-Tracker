@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv"; 
 import connectDB from "./db.js";
+import { exec } from "child_process";   // for keybase commands
 
 import feedbackEvent from "./feedbackSchema.js";
 import motionEvent from "./motionSchema.js";
@@ -13,6 +14,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
+
+const KEYBASE_TEAM = process.env.KEYBASE_TEAM
+const KEYBASE_CHANNEL = process.env.KEYBASE_CHANNEL
 
 connectDB();
 
@@ -117,6 +121,106 @@ app.post("/api/motion/events", async (req, res) => {
     }
 });
 
+//webhooks
+const webhookLogs = [];
+
+const sendWebhookAlertsToKeybase = async (message) => {
+    // Replace newlines with escaped versions for CLI
+    const cliFormattedMessage = message.replace(/\n/g, '\\n');
+    
+    const command = `keybase chat send "akshays_channel" --channel="iot_alerts" "${cliFormattedMessage}"`;
+
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`❌ Keybase Error: ${error.message}`);
+            return;
+        }
+
+        if (stderr) {
+            console.error(`⚠️ Keybase Warning: ${stderr}`);
+            return;
+        }
+
+        console.log(`✅ Keybase Alert Sent: ${stdout} \n ${cliFormattedMessage}`);
+    });
+}
+
+
+
+app.post('/webhooks', (req, res) => {
+    console.log('📦 Webhook payload received:', req.body);
+
+    const { eventType, timestamp, payload, deviceId } = req.body;
+
+    // Store the event (for debugging)
+    webhookLogs.push(req.body);
+
+    // Handle motion events
+    if (eventType === "motion") {
+        // Format the Keybase alert message
+        const alertMessage = [
+            `🚨 **Motion Alert** 🚨`,
+            `📅 **Time:** ${new Date(timestamp).toLocaleString()}`,
+            `🎯 **Event:** ${payload || "Motion detected"}`,
+            `🔧 **Device:** ${deviceId}`
+        ].join('\n');
+
+        // Send to Keybase
+        sendWebhookAlertsToKeybase(alertMessage);
+
+        // Enhanced response
+        res.status(200).json({
+            status: "success",
+            event: {
+                type: eventType,
+                device: deviceId,
+                time: timestamp,
+                details: payload || "No additional details"
+            },
+            keybase: {
+                status: "alert_sent",
+                message: alertMessage
+            }
+        });
+    } else if (eventType === "feedback") {
+        // Format the Keybase alert message
+        const alertMessage = [
+            `🚨 **Feedback Alert** 🚨`,
+            `📅 **Time:** ${new Date(timestamp).toLocaleString()}`,
+            `🎯 **Event:** ${payload || "Motion detected"}`,
+            `🔧 **Device:** ${deviceId}`
+        ].join('\n');
+
+        // Send to Keybase
+        sendWebhookAlertsToKeybase(alertMessage);
+
+        // Enhanced response
+        res.status(200).json({
+            status: "success",
+            event: {
+                type: eventType,
+                device: deviceId,
+                time: timestamp,
+                details: payload || "No additional details"
+            },
+            keybase: {
+                status: "alert_sent",
+                message: alertMessage
+            }
+        });
+    } else {
+        // Handle other event types
+        res.status(200).json({
+            status: "ignored",
+            reason: "Not a valid event",
+            received_data: req.body
+        });
+    }
+});
+
+app.get('/webhooks', (req, res) => {
+    res.status(200).send({ logs: webhookLogs });
+});
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -20,7 +20,7 @@ const { fbDeviceData } = deviceData;  // Extract fbDeviceData
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
 const FbLineChart = () => {
-    const [eventData, setEventData] = useState<{ timestamp: string; value: number }[]>([]);
+    const [eventData, setEventData] = useState<{ timestamp: string; value: number; deviceId: string }[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -51,20 +51,26 @@ const FbLineChart = () => {
                 console.log("Received an array of events.");
 
                 const extractedData = response.data
-                    .map(event => ({
-                        timestamp: event.timestamp,
-                        value: event.device?.button?.payload,
-                    }))
-                    .filter(item => item.timestamp && item.value !== undefined); // filtering data based on what we want here
+                .map(event => ({
+                    timestamp: event.timestamp,
+                    value: event.device?.button?.payload ?? 0, // Ensure payload is defined
+                    deviceId: event.device?.button?.buttonId || "Unknown", // Extract buttonId as deviceId
+                }))
+
+                .filter(item => item.timestamp && item.value !== undefined);
+             // filtering data based on what we want here
+
                 console.log("Extracted Data:", extractedData);
 
                 setEventData(extractedData.length > 0 ? extractedData : []);
+
             } else {
                 console.warn("Unexpected data format:", response.data);
                 setEventData([]);
             }
         } catch (err: any) {
             console.error("Error fetching event data:", err);
+
             if (err.response) {
                 setError(`Server error: ${err.response.status} - ${err.response.data}`);
             } else if (err.request) {
@@ -72,6 +78,7 @@ const FbLineChart = () => {
             } else {
                 setError("Failed to fetch event data.");
             }
+
         } finally {
             console.log("Data fetch completed.");
             setLoading(false);
@@ -90,49 +97,65 @@ const FbLineChart = () => {
         }
     }, [selectedDeviceId]);
 
+    const deviceColorMap: { [key: string]: string } = {
+        Worst: "#FF0000",      // Red
+        Bad: "#FF8C00",        // Orange
+        Good: "#32CD32",       // Green
+        Excellent: "#1E90FF",  // Blue
+    };
+    
     const data = {
         labels: eventData.map((item) => item.timestamp),
         datasets: [
             {
-                label: "Sensor Readings",
-                data: eventData.map((item) => item.value),
-                borderColor: "#f5407f",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                label: "Sensor Readings", // General label for legend
+                data: eventData.map((item) => ({
+                    x: item.timestamp,
+                    y: item.value,
+                    deviceId: item.deviceId, // Attach deviceId to each data point
+                })),
+                borderColor: eventData.map((item) => deviceColorMap[item.deviceId] || "#000000"),
+                backgroundColor: eventData.map((item) => deviceColorMap[item.deviceId] || "rgba(0, 0, 0, 0.2)"),
                 tension: 0.4,
+                pointRadius: 5, // Make points visible
+                pointBackgroundColor: eventData.map((item) => deviceColorMap[item.deviceId] || "#000000"),
             },
         ],
     };
-
+    
     const options = {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-            x: {
-                type: "time" as const,
-                time: {
-                    unit: "minute" as const,
-                    tooltipFormat: "HH:mm",
-                    displayFormats: {
-                        minute: "HH:mm",
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem) {
+                        const dataIndex = tooltipItem.dataIndex;
+                        const pointData = tooltipItem.dataset.data[dataIndex];
+                        const deviceId = pointData.deviceId || "Unknown"; // Retrieve deviceId
+    
+                        return `🫧 ${deviceId}: ${tooltipItem.raw.y}`;
                     },
-                },
-                title: {
-                    display: true,
-                    text: "Time",
-                },
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: "Sensor Readings",
-                },
-                ticks: {
-                    stepSize: 1,
                 },
             },
         },
+        scales: {
+            x: {
+                type: "time",
+                time: {
+                    unit: "minute",
+                    tooltipFormat: "HH:mm",
+                    displayFormats: { minute: "HH:mm" },
+                },
+                title: { display: true, text: "Time" },
+            },
+            y: {
+                title: { display: true, text: "Sensor Readings" },
+                ticks: { stepSize: 1 },
+            },
+        },
     };
-
+    
     return (
         <div className="graph-container">
             <div className="button-container">

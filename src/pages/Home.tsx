@@ -15,8 +15,6 @@ const Home: React.FC = () => {
             <div className="nav-btn-row">
                 <button className="nav-btn" onClick={() => navigate("/create-fb-event")}>Feedback</button>
                 <button className="nav-btn" onClick={() => navigate("/create-motion-event")}>Motion</button>
-                <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Playlists</button>
-                <button className="nav-btn" onClick={() => navigate("/create-btn-event")}>Playlists</button>
             </div>
 
             <FbLineChart />

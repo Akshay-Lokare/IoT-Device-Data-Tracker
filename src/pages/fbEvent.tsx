@@ -3,6 +3,7 @@ import { createFeedbackEvent } from "../helpers/fbBtnPress";
 import deviceData from "../data/deviceData";
 
 const { fbDeviceData } = deviceData; // Extract fbDeviceData properly
+import { feedbackWebhookAlert } from "../helpers/webhookAlert";
 
 const BtnPress: React.FC = () => {
     const [Msg, setMsg] = useState("Welcome");
@@ -24,6 +25,16 @@ const BtnPress: React.FC = () => {
         if (!success) {
             console.log('❌ Failed to record the feedback event');
         }
+
+        const webhookMsg = {
+            eventType: "feedback",
+            timestamp: new Date().toISOString(),
+            value: Number(label),
+            deviceId: String(selectedDeviceId)
+        }
+
+        feedbackWebhookAlert(webhookMsg);
+
     }
 
     return (

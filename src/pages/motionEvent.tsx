@@ -3,6 +3,7 @@ import { createMotionEvent } from "../helpers/motionEvent";
 import deviceData from "../data/deviceData";
 
 const { motionDeviceData } = deviceData;
+import { motionWebhookAlert } from "../helpers/webhookAlert";
 
 export default function MotionEvent() {
     const [Msg, setMsg] = useState("Welcome");
@@ -22,7 +23,18 @@ export default function MotionEvent() {
 
         if (!success) {
             console.log('❌ Failed to record the feedback event');
+            return;
         }
+
+        const webhookMsg = {
+            eventType: "motion",
+            timestamp: new Date().toISOString(),
+            value: Number(label),
+            deviceId: String(selectedDeviceId),
+        }
+
+        motionWebhookAlert(webhookMsg);
+
     }
 
     return (
