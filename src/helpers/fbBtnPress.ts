@@ -2,36 +2,46 @@ import deviceData from "../data/deviceData"; // Import default object
 const { fbDeviceData } = deviceData;  // Extract fbDeviceData properly
 
 export async function createFeedbackEvent(buttonLabel: string, deviceId: string | number) {
-    console.log("Function createFeedbackEvent called with:", { buttonLabel, deviceId });
+    console.log("🟡 Function createFeedbackEvent called with:", { buttonLabel, deviceId });
 
-    // Access `fbDeviceData` correctly
+    // Find the device in fbDeviceData
     const device = fbDeviceData.find((d) => d.deviceId === deviceId);
     if (!device) {
         console.error(`❌ No device found for deviceId: ${deviceId}`);
         return false;
     }
 
-    const { locationTags } = device; // Extract location tags
-    let buttonPresses = 1;
+    const { locationTags } = device;
+    let buttonPresses = 1; // Default to 1
 
     try {
-        console.log(`Checking existing data for deviceId: ${deviceId}`);
-
-        // Fetch existing event data for the selected device
+        console.log(`🟡 Fetching existing event data for deviceId: ${deviceId}...`);
+        
         const response = await fetch(`http://localhost:5000/api/feedback/events/${deviceId}`);
 
         if (response.ok) {
-            const existingEvent = await response.json();
+            const existingEvents = await response.json();
+            console.log("🟡 Existing Event Data:", existingEvents);
 
-            if (existingEvent && existingEvent.device?.buttonPresses) {
-                // Increment button press count based on existing data
-                buttonPresses = existingEvent.device.buttonPresses + 1;
+            // Ensure the existingEvents is an array and extract the last event
+            if (Array.isArray(existingEvents) && existingEvents.length > 0) {
+                const lastEvent = existingEvents[existingEvents.length - 1]; // Get the latest event
+
+                if (lastEvent.device?.buttonPresses !== undefined) {
+                    buttonPresses = lastEvent.device.buttonPresses + 1;
+                } else {
+                    console.warn("⚠️ No buttonPresses found in the latest event, starting from 1.");
+                }
+            } else {
+                console.warn("⚠️ No previous events found, assuming first button press.");
             }
+        } else {
+            console.warn(`⚠️ No existing data found (Status: ${response.status}). Assuming first button press.`);
         }
 
-        console.log(`Updated buttonPresses count: ${buttonPresses}`);
+        console.log(`✅ Updated buttonPresses count: ${buttonPresses}`);
 
-        // Use deviceId instead of buttonLabel for identifying the device
+        // Prepare the event data
         const eventData = {
             deviceId,
             timestamp: new Date().toISOString(),
@@ -39,14 +49,14 @@ export async function createFeedbackEvent(buttonLabel: string, deviceId: string 
             device: {
                 buttonPresses,
                 button: {
-                    buttonId: buttonLabel, // Use buttonLabel for the button pressed
+                    buttonId: buttonLabel,
                     payload: { "Worst": 1, "Bad": 2, "Good": 3, "Excellent": 4 }[buttonLabel] || 0
                 }
             },
             updateDate: new Date().toISOString()
         };
 
-        console.log("Sending event data:", JSON.stringify(eventData, null, 2));
+        console.log("🟡 Sending event data:", JSON.stringify(eventData, null, 2));
 
         const postResponse = await fetch("http://localhost:5000/api/feedback/events", {
             method: "POST",
@@ -55,7 +65,7 @@ export async function createFeedbackEvent(buttonLabel: string, deviceId: string 
         });
 
         if (!postResponse.ok) {
-            throw new Error(`Failed to create/update feedback event. Status: ${postResponse.status}`);
+            throw new Error(`❌ Failed to create/update feedback event. Status: ${postResponse.status}`);
         }
 
         console.log(`✅ Event processed successfully for Device: ${deviceId}, Button: ${buttonLabel}`);

@@ -125,97 +125,99 @@ app.post("/api/motion/events", async (req, res) => {
 const webhookLogs = [];
 
 const sendWebhookAlertsToKeybase = async (message) => {
-    // Replace newlines with escaped versions for CLI
-    const cliFormattedMessage = message.replace(/\n/g, '\\n');
-    
-    const command = `keybase chat send "akshays_channel" --channel="iot_alerts" "${cliFormattedMessage}"`;
+    try {
+        // Convert template literals to actual newlines
+        const formattedMessage = message.replace(/\\n/g, '\n');
+        
+        // Escape for CLI while preserving newlines
+        const cliSafeMessage = formattedMessage
+            .replace(/"/g, '\\"')  // Escape quotes
+            .replace(/([^\\])\n/g, '$1\\n');  // Only escape unescaped newlines
 
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`❌ Keybase Error: ${error.message}`);
-            return;
-        }
-
-        if (stderr) {
-            console.error(`⚠️ Keybase Warning: ${stderr}`);
-            return;
-        }
-
-        console.log(`✅ Keybase Alert Sent: ${stdout} \n ${cliFormattedMessage}`);
-    });
-}
-
-
+        const command = `keybase chat send "${KEYBASE_TEAM || 'akshays_channel'}" --channel="${KEYBASE_CHANNEL || 'iot_alerts'}" "${cliSafeMessage}"`;
+        
+        console.log("Sending to Keybase:", command);
+        
+        exec(command, (error, stdout, stderr) => {
+            if (error) console.error(`❌ Keybase Error: ${error.message}`);
+            if (stderr) console.error(`⚠️ Keybase Warning: ${stderr}`);
+            console.log(`✅ Alert Sent`);
+        });
+    } catch (error) {
+        console.error('Error in sendWebhookAlertsToKeybase:', error);
+    }
+};
 
 app.post('/webhooks', (req, res) => {
     console.log('📦 Webhook payload received:', req.body);
 
-    const { eventType, timestamp, payload, deviceId } = req.body;
+    const { eventType, timestamp, payload, deviceId, locationTags } = req.body;
 
     // Store the event (for debugging)
     webhookLogs.push(req.body);
 
-    // Handle motion events
+    let alertMessage;
+    let responsePayload;
+
+    // Handle different event types
     if (eventType === "motion") {
-        // Format the Keybase alert message
-        const alertMessage = [
+        alertMessage = [
             `🚨 **Motion Alert** 🚨`,
             `📅 **Time:** ${new Date(timestamp).toLocaleString()}`,
             `🎯 **Event:** ${payload || "Motion detected"}`,
-            `🔧 **Device:** ${deviceId}`
+            `🔧 **Device:** ${deviceId}`,
+            `📍 **Location:** ${locationTags || 'Unknown'}`
         ].join('\n');
 
-        // Send to Keybase
-        sendWebhookAlertsToKeybase(alertMessage);
-
-        // Enhanced response
-        res.status(200).json({
+        responsePayload = {
             status: "success",
             event: {
                 type: eventType,
                 device: deviceId,
                 time: timestamp,
-                details: payload || "No additional details"
-            },
-            keybase: {
-                status: "alert_sent",
-                message: alertMessage
+                details: payload || "No additional details",
+                location: locationTags
             }
-        });
-    } else if (eventType === "feedback") {
-        // Format the Keybase alert message
-        const alertMessage = [
-            `🚨 **Feedback Alert** 🚨`,
+        };
+    } 
+    else if (eventType === "feedback") {
+        alertMessage = [
+            `💬 **Feedback Alert** 💬`,
             `📅 **Time:** ${new Date(timestamp).toLocaleString()}`,
-            `🎯 **Event:** ${payload || "Motion detected"}`,
-            `🔧 **Device:** ${deviceId}`
+            `📝 **Feedback:** ${payload || "Feedback received"}`,
+            `🔧 **Device:** ${deviceId}`,
+            `📍 **Location:** ${locationTags || 'Unknown'}`
         ].join('\n');
 
-        // Send to Keybase
-        sendWebhookAlertsToKeybase(alertMessage);
-
-        // Enhanced response
-        res.status(200).json({
+        responsePayload = {
             status: "success",
             event: {
                 type: eventType,
                 device: deviceId,
                 time: timestamp,
-                details: payload || "No additional details"
-            },
-            keybase: {
-                status: "alert_sent",
-                message: alertMessage
+                feedback: payload || "No feedback content",
+                location: locationTags
             }
-        });
-    } else {
-        // Handle other event types
-        res.status(200).json({
+        };
+    }
+    else {
+        return res.status(200).json({
             status: "ignored",
-            reason: "Not a valid event",
+            reason: "Unsupported event type",
             received_data: req.body
         });
     }
+
+    // Send to Keybase
+    sendWebhookAlertsToKeybase(alertMessage);
+
+    // Add keybase info to response
+    responsePayload.keybase = {
+        status: "alert_sent",
+        message: alertMessage
+    };
+
+    res.status(200).json(responsePayload);
 });
 
 app.get('/webhooks', (req, res) => {
